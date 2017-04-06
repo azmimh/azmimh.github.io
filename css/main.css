@@ -110,6 +110,12 @@ footer {
 /**********************************
 PAGE: PORTFOLIO
 ***********************************/
+
+.design-template{
+    max-width: 300px;
+    display: block;
+    margin: auto;
+}
 /*
 #gallery {
   margin: 0;
@@ -136,6 +142,7 @@ PAGE: PORTFOLIO
 /**********************************
 PAGE: ABOUT
 ***********************************/
+
 
 .profile-photo {
   display: block;
