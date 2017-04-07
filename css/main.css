@@ -206,10 +206,11 @@ header {
 }
 
 /* nav background on mobile */
-nav {
-  background: #fff;
-}
-
+header {
+    border-bottom: .05px solid #000;
+    margin-bottom: 60px;
+  }
+  
 /* logo text */
 h1, h2 {
   color: #000;
@@ -222,7 +223,7 @@ a {
 
 /* nav link */
 nav a, nav a:visited {
-  color: #fff;
+  color: #d3d3d3;
 }
 
 /* selected nav link */
