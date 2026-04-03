@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kids Math Adventure</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background: #f0f9ff;
+            background-image: radial-gradient(#bae6fd 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .heading-font { font-family: 'Fredoka One', cursive; }
+        .card {
+            border-bottom: 6px solid rgba(0,0,0,0.1);
+        }
+        .btn-pop {
+            transition: transform 0.1s, box-shadow 0.1s;
+            border-bottom: 4px solid rgba(0,0,0,0.2);
+        }
+        .btn-pop:active {
+            transform: translateY(4px);
+            border-bottom-width: 0;
+        }
+        @keyframes bounce-slow {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .animate-bounce-slow { animation: bounce-slow 3s infinite; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
+
+    <!-- Settings Modal/Section -->
+    <div id="settings-view" class="w-full max-w-md bg-white rounded-3xl p-8 shadow-xl card border-t-8 border-yellow-400">
+        <h1 class="heading-font text-3xl text-center text-yellow-500 mb-6">Setup the Fun! 🎨</h1>
+        
+        <div class="space-y-6">
+            <!-- Number Range -->
+            <div>
+                <label class="block text-slate-600 font-bold mb-2">Number Range (Up to: <span id="range-val">10</span>)</label>
+                <input type="range" id="range-slider" min="5" max="100" value="10" 
+                       class="w-full h-3 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-yellow-400">
+            </div>
+
+            <!-- Operations -->
+            <div>
+                <label class="block text-slate-600 font-bold mb-3">What should we practice?</label>
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="toggleOp('+')" id="op-+" class="op-btn py-3 rounded-xl bg-green-100 border-2 border-green-400 text-green-700 font-bold">+ Plus</button>
+                    <button onclick="toggleOp('-')" id="op--" class="op-btn py-3 rounded-xl bg-slate-100 border-2 border-slate-200 text-slate-400 font-bold">- Minus</button>
+                    <button onclick="toggleOp('*')" id="op-*" class="op-btn py-3 rounded-xl bg-slate-100 border-2 border-slate-200 text-slate-400 font-bold">× Times</button>
+                    <button onclick="toggleOp('/')" id="op-/" class="op-btn py-3 rounded-xl bg-slate-100 border-2 border-slate-200 text-slate-400 font-bold">÷ Divide</button>
+                </div>
+            </div>
+
+            <button onclick="startGame()" class="w-full py-4 bg-yellow-400 hover:bg-yellow-500 text-white heading-font text-2xl rounded-2xl btn-pop shadow-lg">
+                START GAME! 🚀
+            </button>
+        </div>
+    </div>
+
+    <!-- Game View (Hidden Initially) -->
+    <div id="game-view" class="hidden w-full max-w-md bg-white rounded-3xl p-8 shadow-xl card border-t-8 border-blue-400 text-center">
+        <!-- Progress & Stars -->
+        <div class="flex justify-between items-center mb-8">
+            <div class="text-yellow-500 text-2xl font-bold">✨ <span id="star-count">0</span></div>
+            <div class="w-2/3 h-4 bg-slate-100 rounded-full overflow-hidden border">
+                <div id="progress-bar" class="h-full bg-blue-400 transition-all duration-500" style="width: 0%"></div>
+            </div>
+            <button onclick="showSettings()" class="text-slate-300 hover:text-slate-500">⚙️</button>
+        </div>
+
+        <!-- Question Display -->
+        <div class="mb-10 animate-bounce-slow">
+            <div id="question" class="heading-font text-6xl text-slate-700 tracking-tighter">5 + 2 = ?</div>
+        </div>
+
+        <!-- Feedback Area -->
+        <div id="feedback" class="h-12 mb-4 font-bold text-xl"></div>
+
+        <!-- Keypad -->
+        <div class="grid grid-cols-3 gap-4">
+            <button onclick="addNumber(1)" class="py-6 bg-blue-50 text-blue-600 text-3xl font-bold rounded-2xl btn-pop border-blue-200 hover:bg-blue-100">1</button>
+            <button onclick="addNumber(2)" class="py-6 bg-blue-50 text-blue-600 text-3xl font-bold rounded-2xl btn-pop border-blue-200 hover:bg-blue-100">2</button>
+            <button onclick="addNumber(3)" class="py-6 bg-blue-50 text-blue-600 text-3xl font-bold rounded-2xl btn-pop border-blue-200 hover:bg-blue-100">3</button>
+            <button onclick="addNumber(4)" class="py-6 bg-blue-50 text-blue-600 text-3xl font-bold rounded-2xl btn-pop border-blue-200 hover:bg-blue-100">4</button>
+            <button onclick="addNumber(5)" class="py-6 bg-blue-50 text-blue-600 text-3xl font-bold rounded-2xl btn-pop border-blue-200 hover:bg-blue-100">5</button>
+            <button onclick="addNumber(6)" class="py-6 bg-blue-50 text-blue-600 text-3xl font-bold rounded-2xl btn-pop border-blue-200 hover:bg-blue-100">6</button>
+            <button onclick="addNumber(7)" class="py-6 bg-blue-50 text-blue-600 text-3xl font-bold rounded-2xl btn-pop border-blue-200 hover:bg-blue-100">7</button>
+            <button onclick="addNumber(8)" class="py-6 bg-blue-50 text-blue-600 text-3xl font-bold rounded-2xl btn-pop border-blue-200 hover:bg-blue-100">8</button>
+            <button onclick="addNumber(9)" class="py-6 bg-blue-50 text-blue-600 text-3xl font-bold rounded-2xl btn-pop border-blue-200 hover:bg-blue-100">9</button>
+            <button onclick="clearInput()" class="py-6 bg-red-50 text-red-500 text-3xl font-bold rounded-2xl btn-pop border-red-200 hover:bg-red-100">C</button>
+            <button onclick="addNumber(0)" class="py-6 bg-blue-50 text-blue-600 text-3xl font-bold rounded-2xl btn-pop border-blue-200 hover:bg-blue-100">0</button>
+            <button onclick="checkAnswer()" class="py-6 bg-green-500 text-white text-3xl font-bold rounded-2xl btn-pop border-green-600 hover:bg-green-600">✔</button>
+        </div>
+        
+        <div id="current-input" class="mt-6 text-4xl font-bold text-slate-400 min-h-[1em]"></div>
+    </div>
+
+    <script>
+        let maxNum = 10;
+        let selectedOps = ['+'];
+        let currentAnswer = 0;
+        let userInput = "";
+        let stars = 0;
+        let score = 0;
+
+        const slider = document.getElementById('range-slider');
+        const rangeDisplay = document.getElementById('range-val');
+        
+        slider.oninput = function() {
+            maxNum = parseInt(this.value);
+            rangeDisplay.innerText = this.value;
+        }
+
+        function toggleOp(op) {
+            const btn = document.getElementById(`op-${op}`);
+            if (selectedOps.includes(op)) {
+                if (selectedOps.length > 1) {
+                    selectedOps = selectedOps.filter(o => o !== op);
+                    btn.classList.replace('bg-green-100', 'bg-slate-100');
+                    btn.classList.replace('border-green-400', 'border-slate-200');
+                    btn.classList.replace('text-green-700', 'text-slate-400');
+                }
+            } else {
+                selectedOps.push(op);
+                btn.classList.replace('bg-slate-100', 'bg-green-100');
+                btn.classList.replace('border-slate-200', 'border-green-400');
+                btn.classList.replace('text-slate-400', 'text-green-700');
+            }
+        }
+
+        function startGame() {
+            document.getElementById('settings-view').classList.add('hidden');
+            document.getElementById('game-view').classList.remove('hidden');
+            score = 0;
+            updateProgress();
+            generateQuestion();
+        }
+
+        function showSettings() {
+            document.getElementById('game-view').classList.add('hidden');
+            document.getElementById('settings-view').classList.remove('hidden');
+        }
+
+        function generateQuestion() {
+            userInput = "";
+            document.getElementById('current-input').innerText = "";
+            document.getElementById('feedback').innerText = "";
+            
+            const op = selectedOps[Math.floor(Math.random() * selectedOps.length)];
+            let n1, n2;
+
+            if (op === '+') {
+                n1 = Math.floor(Math.random() * maxNum) + 1;
+                n2 = Math.floor(Math.random() * maxNum) + 1;
+                currentAnswer = n1 + n2;
+            } else if (op === '-') {
+                n1 = Math.floor(Math.random() * maxNum) + 1;
+                n2 = Math.floor(Math.random() * n1) + 1; // Ensure positive result
+                currentAnswer = n1 - n2;
+            } else if (op === '*') {
+                // Keep multiplication simpler for 5yo
+                n1 = Math.floor(Math.random() * 5) + 1; 
+                n2 = Math.floor(Math.random() * 10) + 1;
+                currentAnswer = n1 * n2;
+            } else if (op === '/') {
+                n2 = Math.floor(Math.random() * 5) + 1;
+                currentAnswer = Math.floor(Math.random() * 5) + 1;
+                n1 = n2 * currentAnswer; // Ensure clean division
+            }
+
+            const opSymbol = op === '*' ? '×' : op === '/' ? '÷' : op;
+            document.getElementById('question').innerText = `${n1} ${opSymbol} ${n2} = ?`;
+        }
+
+        function addNumber(num) {
+            if (userInput.length < 3) {
+                userInput += num;
+                document.getElementById('current-input').innerText = userInput;
+            }
+        }
+
+        function clearInput() {
+            userInput = "";
+            document.getElementById('current-input').innerText = userInput;
+        }
+
+        function checkAnswer() {
+            if (userInput === "") return;
+
+            const feedback = document.getElementById('feedback');
+            if (parseInt(userInput) === currentAnswer) {
+                feedback.innerText = "🌟 AMAZING! 🌟";
+                feedback.className = "h-12 mb-4 font-bold text-xl text-green-500";
+                stars++;
+                score += 10;
+                document.getElementById('star-count').innerText = stars;
+                updateProgress();
+                
+                setTimeout(() => {
+                    if (score >= 100) {
+                        celebrate();
+                    } else {
+                        generateQuestion();
+                    }
+                }, 1000);
+            } else {
+                feedback.innerText = "Try again, you can do it! 💪";
+                feedback.className = "h-12 mb-4 font-bold text-xl text-orange-400";
+                userInput = "";
+                document.getElementById('current-input').innerText = "";
+            }
+        }
+
+        function updateProgress() {
+            const bar = document.getElementById('progress-bar');
+            bar.style.width = `${score % 100}%`;
+        }
+
+        function celebrate() {
+            const q = document.getElementById('question');
+            q.innerText = "🎉 YOU WON! 🎉";
+            score = 0;
+            updateProgress();
+            setTimeout(generateQuestion, 3000);
+        }
+    </script>
+</body>
+</html>
