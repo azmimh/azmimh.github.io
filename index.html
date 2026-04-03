@@ -1,76 +1,158 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <title>Muhammad Hafiz | Engineer</title>
-    <link rel="stylesheet" href="css/normalize.css">
-    <link href="https://fonts.googleapis.com/css?family=Glegoo" rel="stylesheet">
-    <link href='http://fonts.googleapis.com/css?family=Changa+One|Open+Sans:400italic,700italic,400,700,800' rel='stylesheet' type='text/css'>
-    <link rel="stylesheet" href="css/main.css">
-    <link rel="stylesheet" href="css/responsive.css">
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  </head>
-  <body>
-    <header>
-      <a href="index.html" id="logo">
-        <h1>Muhammad Hafiz</h1>
-        <h2>Engineer</h2>
-      </a>
-      <nav>
-        <ul>
-          <li><a href="index.html" class="selected">Home</a></li>
-          <li><a href="about.html">About</a></li>
-          <li><a href="contact.html">Contact</a></li>
-        </ul>
-      </nav>
-    </header>
-    <div id="wrapper">
-      <section>
-        <a href="img/design.jpg">
-          <img src="img/design.jpg" alt="" class="design-template">
-        </a>
-      </section>
-    <!--
-      <section>
-        <ul id="gallery">
-          <li>
-            <a href="img/numbers-01.jpg">
-              <img src="img/numbers-01.jpg" alt="">
-              <p>Experimentation with color and texture.</p>
-            </a>
-          </li>
-          <li>
-            <a href="img/numbers-02.jpg">
-              <img src="img/numbers-02.jpg" alt="">
-              <p>Playing with blending modes in Photoshop.</p>
-            </a>
-          </li>
-          <li>
-            <a href="img/numbers-06.jpg">
-              <img src="img/numbers-06.jpg" alt="">
-              <p>Trying to create an 80's style of glows.</p>
-            </a>
-          </li>
-          <li>
-            <a href="img/numbers-09.jpg">
-              <img src="img/numbers-09.jpg" alt="">
-              <p>Drips created using Photoshop brushes.</p>
-            </a>
-          </li>
-          <li>
-            <a href="img/numbers-12.jpg">
-              <img src="img/numbers-12.jpg" alt="">
-              <p>Creating shapes using repetition.</p>
-            </a>
-          </li>
-        </ul>
-      </section>
-      -->
-      <footer>
-        <a href="http://twitter.com/hafzazmi"><img src="img/twitter-wrap.png" alt="Twitter Logo" class="social-icon"></a>
-        <a href="http://facebook.com/apih.azmi"><img src="img/facebook-wrap.png" alt="Facebook Logo" class="social-icon"></a>
-        <p>&copy; 2017 Muhammad Hafiz.</p>
-      </footer>
+    <title>Ir. M Hafiz | Professional Engineer & Data Analyst</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #f1f5f9;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(30, 64, 175, 0.2) 0, transparent 50%), 
+                radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.2) 0, transparent 50%);
+            min-height: 100vh;
+        }
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 2rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .btn-link {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .btn-link:hover {
+            transform: translateY(-3px);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        /* Brand Colors on Hover */
+        .hover-tableau:hover i { color: #e97627; }
+        .hover-linkedin:hover i { color: #0077b5; }
+        .hover-gmail:hover i { color: #ea4335; }
+        .hover-facebook:hover i { color: #1877f2; }
+        .hover-x:hover i { color: #ffffff; }
+        .hover-instagram:hover i { color: #e4405f; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+
+        .section-title {
+            font-size: 0.7rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: #64748b;
+            margin-bottom: 0.75rem;
+            text-align: left;
+            padding-left: 0.5rem;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center p-4 md:p-8">
+
+    <div class="max-w-xl w-full animate-fade-in">
+        <div class="glass-card p-6 md:p-10 text-center">
+            
+            <!-- Profile Header -->
+            <div class="mb-10">
+                <div class="relative w-28 h-28 mx-auto mb-6">
+                    <div class="absolute inset-0 bg-gradient-to-tr from-blue-600 to-purple-600 rounded-full blur-md opacity-50"></div>
+                    <div class="relative w-28 h-28 bg-slate-800 rounded-full flex items-center justify-center text-3xl font-bold border-2 border-white/10 shadow-xl tracking-tighter text-blue-100">
+                        MHA
+                    </div>
+                </div>
+                <h1 class="text-3xl md:text-4xl font-bold mb-2 tracking-tight">Ir. M Hafiz</h1>
+                <p class="text-blue-400 font-semibold mb-4 uppercase tracking-widest text-[10px] md:text-xs">Professional Engineer | Data Analyst | Creative Thinker</p>
+                <p class="text-slate-400 leading-relaxed text-sm max-w-sm mx-auto">
+                    Bridging the gap between engineering excellence and data-driven insights. Connect with me across my professional and social channels.
+                </p>
+            </div>
+
+            <!-- Links Container -->
+            <div class="space-y-8">
+                
+                <!-- Professional Section -->
+                <div>
+                    <h2 class="section-title">Professional</h2>
+                    <div class="grid grid-cols-1 gap-3">
+                        <a href="https://www.linkedin.com/in/azmimh" target="_blank" class="btn-link hover-linkedin flex items-center justify-between p-4 rounded-2xl group">
+                            <div class="flex items-center">
+                                <i class="fa-brands fa-linkedin text-xl mr-4 text-slate-300 transition-colors"></i>
+                                <span class="font-medium">LinkedIn</span>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-[10px] text-slate-500 group-hover:text-white"></i>
+                        </a>
+
+                        <a href="https://public.tableau.com/app/profile/azmi.mh" target="_blank" class="btn-link hover-tableau flex items-center justify-between p-4 rounded-2xl group">
+                            <div class="flex items-center">
+                                <i class="fa-solid fa-chart-line text-xl mr-4 text-slate-300 transition-colors"></i>
+                                <span class="font-medium">Tableau Portfolio</span>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-[10px] text-slate-500 group-hover:text-white"></i>
+                        </a>
+
+                        <a href="mailto:azmimh@gmail.com" class="btn-link hover-gmail flex items-center justify-between p-4 rounded-2xl group">
+                            <div class="flex items-center">
+                                <i class="fa-solid fa-envelope text-xl mr-4 text-slate-300 transition-colors"></i>
+                                <span class="font-medium">Email Me</span>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-[10px] text-slate-500 group-hover:text-white"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Social Media Section -->
+                <div>
+                    <h2 class="section-title">Social Media</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <a href="https://facebook.com/your-profile" target="_blank" class="btn-link hover-facebook flex flex-col items-center justify-center p-4 rounded-2xl group">
+                            <i class="fa-brands fa-facebook text-2xl mb-2 text-slate-300 transition-colors"></i>
+                            <span class="text-xs font-medium">Facebook</span>
+                        </a>
+
+                        <a href="https://x.com/your-profile" target="_blank" class="btn-link hover-x flex flex-col items-center justify-center p-4 rounded-2xl group">
+                            <i class="fa-brands fa-x-twitter text-2xl mb-2 text-slate-300 transition-colors"></i>
+                            <span class="text-xs font-medium">X / Twitter</span>
+                        </a>
+
+                        <a href="https://instagram.com/your-profile" target="_blank" class="btn-link hover-instagram flex flex-col items-center justify-center p-4 rounded-2xl group">
+                            <i class="fa-brands fa-instagram text-2xl mb-2 text-slate-300 transition-colors"></i>
+                            <span class="text-xs font-medium">Instagram</span>
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Footer -->
+            <footer class="mt-12 pt-8 border-t border-white/5 text-slate-500 text-[10px] tracking-[0.2em] uppercase">
+                &copy; <span id="year"></span> Ir. M Hafiz • Digital Presence
+            </footer>
+        </div>
     </div>
-  </body>
+
+    <script>
+        document.getElementById('year').textContent = new Date().getFullYear();
+    </script>
+</body>
 </html>
