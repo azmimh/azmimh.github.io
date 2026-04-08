@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bijak Membaca BM - Perkataan Bermakna</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Fredoka', sans-serif; background-color: #fef3c7; }
+        .syllable-btn {
+            transition: all 0.2s;
+            box-shadow: 0 6px 0 #d97706;
+        }
+        .syllable-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #d97706;
+        }
+        .drop-zone {
+            min-height: 80px;
+            border: 3px dashed #fbbf24;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        .shake { animation: shake 0.2s ease-in-out 0s 2; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center p-4 md:p-10">
+
+    <div class="w-full max-w-md bg-white rounded-3xl shadow-xl p-6 border-b-8 border-amber-200 relative overflow-hidden">
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-6">
+            <div class="flex flex-col">
+                <h1 class="text-2xl font-bold text-amber-600 tracking-tight">📖 Bijak Membaca</h1>
+                <p class="text-[10px] text-amber-400 font-bold uppercase tracking-widest">Mod: Perkataan Bermakna</p>
+            </div>
+            <div class="flex gap-2 items-center">
+                <button onclick="generateNewLevel()" class="p-2 bg-slate-100 text-slate-400 rounded-lg hover:bg-slate-200 transition-colors" title="Tukar Soalan">
+                    <i class="fa-solid fa-shuffle text-xs"></i>
+                </button>
+                <div class="bg-amber-100 px-3 py-1 rounded-full text-amber-700 font-bold">⭐ <span id="score">0</span></div>
+            </div>
+        </div>
+
+        <!-- Perkataan & Gambar -->
+        <div class="text-center mb-8 relative">
+            <div id="image-placeholder" class="text-7xl mb-2 p-4 bg-slate-50 rounded-2xl border-2 border-slate-100 flex items-center justify-center h-40 shadow-inner relative">
+                ✨
+            </div>
+            
+            <button onclick="speakWord()" class="absolute bottom-6 right-4 w-12 h-12 bg-orange-500 text-white rounded-full shadow-lg border-b-4 border-orange-700 flex items-center justify-center hover:scale-110 active:scale-95 transition-all">
+                <i class="fa-solid fa-volume-high"></i>
+            </button>
+
+            <p id="word-hint" class="text-slate-300 text-[10px] mb-2 font-mono uppercase tracking-widest opacity-0 hover:opacity-100 transition-opacity cursor-help">
+                HINT: ----
+            </p>
+            
+            <p class="text-slate-400 text-[10px] mb-2 uppercase tracking-[0.2em] font-bold italic">Dengar & eja perkataan ini:</p>
+            
+            <div id="drop-area" class="flex justify-center gap-2 mb-4 drop-zone rounded-2xl items-center p-2 bg-amber-50/50"></div>
+            <div id="feedback" class="h-6 font-bold text-lg"></div>
+        </div>
+
+        <!-- Pilihan Suku Kata -->
+        <div class="grid grid-cols-3 gap-3" id="syllable-options"></div>
+
+        <!-- Controls -->
+        <div class="mt-8 flex flex-col gap-3">
+            <div class="flex gap-3">
+                <button onclick="clearSyllables()" class="flex-1 py-3 bg-slate-100 text-slate-500 rounded-xl font-bold border-b-4 border-slate-200 text-sm">Padam</button>
+                <button id="hint-btn" onclick="showHint()" class="flex-1 py-3 bg-blue-100 text-blue-600 rounded-xl font-bold border-b-4 border-blue-200 text-sm">Bantuan 💡</button>
+            </div>
+            <button onclick="checkAnswer()" class="w-full py-4 bg-green-500 text-white rounded-2xl font-bold text-xl shadow-lg border-b-4 border-green-700 active:border-b-0 active:translate-y-1 transition-all">SEMAK ✔</button>
+        </div>
+    </div>
+
+    <!-- Modal Tahniah -->
+    <div id="win-modal" class="fixed inset-0 bg-slate-900/80 hidden flex items-center justify-center p-4 backdrop-blur-sm z-50">
+        <div class="bg-white rounded-[2.5rem] p-8 text-center max-w-xs w-full shadow-2xl">
+            <div id="modal-emoji" class="text-6xl mb-4">🌈</div>
+            <h2 class="text-3xl font-bold text-amber-500 mb-1">BIJAK!</h2>
+            <p class="text-slate-500 mb-6 font-medium" id="modal-word-display"></p>
+            <button onclick="nextLevel()" class="w-full py-4 bg-amber-500 text-white rounded-2xl font-bold text-xl shadow-lg border-b-4 border-amber-700 active:border-b-0 active:translate-y-1 transition-all">Seterusnya 🚀</button>
+        </div>
+    </div>
+
+    <script>
+        // Kamus Perkataan Bermakna (KV+KV)
+        // Kita gunakan objek ini sebagai sumber utama
+        const malayDictionary = {
+            "BOLA": "⚽", "CILI": "🌶️", "SUDU": "🥄", "KUDA": "🐎", "BUKU": "📚", 
+            "MEJA": "🪑", "RAGA": "🧺", "TOPI": "🧢", "FERI": "⛴️", "GULA": "🍬",
+            "ROTI": "🍞", "YOYO": "🪀", "KAYU": "🪵", "GULI": "🔮", "PASU": "🪴",
+            "SARI": "🥻", "PADI": "🌾", "LAMA": "⏱️", "MATA": "👁️", "GIGI": "🦷",
+            "KAKI": "🦶", "DADA": "👕", "FOTO": "📸", "JALA": "🕸️", "LORI": "🚛",
+            "BAPA": "👨", "MAMA": "👩", "SAGA": "🚗", "LABU": "🎃", "Paku": "🔨",
+            "Susu": "🥛", "Baju": "👕", "Duri": "🌵", "Nasi": "🍚", "Roti": "🍞",
+            "Tali": "🧵", "Dadu": "🎲", "Ciku": "🥔", "Gajah": "🐘", "Lidi": "🧹",
+            "Peti": "📦", "Topi": "🧢", "Ceri": "🍒", "Sawi": "🥬", "Kari": "🥘",
+            "Duku": "🌳", "Buli": "🧼", "Pipi": "😊", "Jari": "🖐️", "Dahi": "👤",
+            "Kuku": "💅", "Bulu": "🦅", "Kera": "🐒", "Rusa": "🦌", "Kutu": "🐜"
+        };
+
+        const consonants = "BCDFGHJKLMNPRSTVWY".split("");
+        const vowels = "AEIOU".split("");
+
+        let currentWord = { syllables: [], full: "" };
+        let selectedSyllables = [];
+        let score = 0;
+        let hintUsed = false;
+
+        function getRandomSyllable() {
+            const c = consonants[Math.floor(Math.random() * consonants.length)];
+            const v = vowels[Math.floor(Math.random() * vowels.length)];
+            return c + v;
+        }
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function speakWord() {
+            const text = `${currentWord.syllables[0]}... ${currentWord.syllables[1]}... ${currentWord.full}`;
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'ms-MY';
+            utterance.rate = 0.7;
+            speechSynthesis.speak(utterance);
+        }
+
+        function generateNewLevel() {
+            const words = Object.keys(malayDictionary);
+            // Pilih satu perkataan secara rawak daripada kamus
+            const word = words[Math.floor(Math.random() * words.length)].toUpperCase();
+            
+            // Pecahkan kepada KV+KV
+            const s1 = word.substring(0, 2);
+            const s2 = word.substring(2, 4);
+
+            currentWord = { syllables: [s1, s2], full: word };
+            
+            document.getElementById('image-placeholder').innerText = malayDictionary[word] || malayDictionary[word.charAt(0) + word.slice(1).toLowerCase()] || "✨";
+            document.getElementById('word-hint').innerText = `PAPA HINT: ${s1} + ${s2}`;
+            
+            setupUI();
+            setTimeout(speakWord, 500);
+        }
+
+        function setupUI() {
+            document.getElementById('drop-area').innerHTML = '';
+            document.getElementById('feedback').innerText = '';
+            document.getElementById('hint-btn').disabled = false;
+            document.getElementById('hint-btn').classList.remove('opacity-50');
+            selectedSyllables = [];
+            hintUsed = false;
+
+            // Masukkan suku kata betul
+            let options = [...currentWord.syllables];
+            
+            // Masukkan suku kata pengacau yang logik (bukan rawak gila-gila)
+            while(options.length < 6) {
+                let randomS = getRandomSyllable();
+                if (!options.includes(randomS)) options.push(randomS);
+            }
+            
+            options = shuffle(options);
+
+            const container = document.getElementById('syllable-options');
+            container.innerHTML = '';
+            options.forEach(s => {
+                const btn = document.createElement('button');
+                btn.className = "syllable-btn py-4 bg-amber-400 text-white font-bold text-xl rounded-2xl border-b-4 border-amber-600";
+                btn.innerText = s;
+                btn.onclick = () => addSyllable(s);
+                container.appendChild(btn);
+            });
+        }
+
+        function addSyllable(s) {
+            if (selectedSyllables.length < 2) {
+                selectedSyllables.push(s);
+                renderSelected();
+            }
+        }
+
+        function renderSelected(isHint = false) {
+            const area = document.getElementById('drop-area');
+            area.innerHTML = '';
+            
+            if (isHint) {
+                currentWord.syllables.forEach(s => {
+                    const span = document.createElement('div');
+                    span.className = "bg-white border-2 border-dashed border-amber-200 text-amber-200 px-4 py-2 rounded-xl text-2xl font-bold";
+                    span.innerText = s;
+                    area.appendChild(span);
+                });
+                return;
+            }
+
+            selectedSyllables.forEach(s => {
+                const span = document.createElement('div');
+                span.className = "bg-white border-2 border-amber-400 text-amber-600 px-4 py-2 rounded-xl text-2xl font-bold animate-bounce";
+                span.innerText = s;
+                area.appendChild(span);
+            });
+        }
+
+        function showHint() {
+            if (selectedSyllables.length > 0) clearSyllables();
+            renderSelected(true);
+            document.getElementById('hint-btn').disabled = true;
+            document.getElementById('hint-btn').classList.add('opacity-50');
+            hintUsed = true;
+        }
+
+        function clearSyllables() {
+            selectedSyllables = [];
+            renderSelected();
+        }
+
+        function checkAnswer() {
+            const result = selectedSyllables.join("");
+            const feedback = document.getElementById('feedback');
+
+            if (result === currentWord.full) {
+                feedback.innerText = "TEPAT SEKALI! 🎯";
+                feedback.className = "h-6 font-bold text-lg text-green-500";
+                score += hintUsed ? 5 : 10;
+                document.getElementById('score').innerText = score;
+                
+                setTimeout(() => {
+                    document.getElementById('win-modal').classList.remove('hidden');
+                    document.getElementById('modal-word-display').innerText = `Ayra berjaya eja ${currentWord.full}!`;
+                    document.getElementById('modal-emoji').innerText = malayDictionary[currentWord.full] || "🌈";
+                }, 400);
+            } else {
+                feedback.innerText = "Cuba lagi sayang...";
+                feedback.className = "h-6 font-bold text-lg text-red-400";
+                document.getElementById('drop-area').classList.add('shake');
+                setTimeout(() => document.getElementById('drop-area').classList.remove('shake'), 400);
+            }
+        }
+
+        function nextLevel() {
+            document.getElementById('win-modal').classList.add('hidden');
+            generateNewLevel();
+        }
+
+        generateNewLevel();
+    </script>
+</body>
+</html>
