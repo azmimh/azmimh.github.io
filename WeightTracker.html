@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weight Tracker | Papa & Ayra</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
+        .glass-card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); }
+        .chart-container { position: relative; height: 250px; width: 100%; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-5xl mx-auto">
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl font-bold text-slate-800">Health Tracker ✨</h1>
+            <p class="text-slate-500">Pantau perkembangan berat & BMI keluarga</p>
+        </header>
+
+        <div class="grid md:grid-cols-3 gap-6 mb-8">
+            <!-- Form Card -->
+            <div class="glass-card p-6 rounded-3xl shadow-sm border border-slate-100">
+                <h2 class="text-lg font-bold mb-4 text-slate-700 flex items-center gap-2">
+                    <span class="p-2 bg-blue-100 rounded-lg text-blue-600">📝</span> Rekod Baru
+                </h2>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 mb-1 uppercase">Subjek</label>
+                        <select id="target" class="w-full p-3 rounded-xl border border-slate-200 bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none">
+                            <option value="papa">Papa</option>
+                            <option value="ayra">Ayra</option>
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 mb-1 uppercase">Berat (kg)</label>
+                            <input type="number" id="weight" step="0.1" placeholder="0.0" class="w-full p-3 rounded-xl border border-slate-200 bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 mb-1 uppercase">Tinggi (cm)</label>
+                            <input type="number" id="height" step="1" placeholder="0" class="w-full p-3 rounded-xl border border-slate-200 bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+                    </div>
+                    <button onclick="saveRecord()" id="save-btn" class="w-full py-4 bg-slate-800 text-white rounded-2xl font-bold hover:bg-slate-700 transition-all shadow-lg active:scale-95">
+                        Simpan Data
+                    </button>
+                    <p id="status" class="text-center text-sm font-medium h-4"></p>
+                </div>
+            </div>
+
+            <!-- BMI Papa -->
+            <div class="glass-card p-6 rounded-3xl shadow-sm bg-gradient-to-br from-blue-600 to-blue-700 text-white">
+                <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
+                    <span class="p-2 bg-blue-500/30 rounded-lg">👨</span> BMI Papa
+                </h2>
+                <div class="mt-8">
+                    <div class="flex items-end gap-2">
+                        <span id="papa-bmi-val" class="text-5xl font-bold">--</span>
+                        <span class="text-blue-200 text-sm mb-2 font-bold">kg/m²</span>
+                    </div>
+                    <p id="papa-bmi-status" class="mt-2 text-blue-100 font-medium">Memuatkan...</p>
+                    <div class="mt-4 h-1 w-full bg-blue-500/30 rounded-full overflow-hidden">
+                        <div id="papa-bmi-bar" class="h-full bg-white transition-all duration-1000" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BMI Ayra -->
+            <div class="glass-card p-6 rounded-3xl shadow-sm bg-gradient-to-br from-rose-500 to-rose-600 text-white">
+                <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
+                    <span class="p-2 bg-rose-400/30 rounded-lg">👧</span> BMI Ayra
+                </h2>
+                <div class="mt-8">
+                    <div class="flex items-end gap-2">
+                        <span id="ayra-bmi-val" class="text-5xl font-bold">--</span>
+                        <span class="text-rose-200 text-sm mb-2 font-bold">kg/m²</span>
+                    </div>
+                    <p id="ayra-bmi-status" class="mt-2 text-rose-100 font-medium font-bold uppercase tracking-wide">Memuatkan...</p>
+                    <p class="text-[10px] text-rose-200 mt-1">*Kategori pertumbuhan kanak-kanak</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="grid md:grid-cols-2 gap-6 mb-8">
+            <div class="glass-card p-6 rounded-3xl shadow-sm border border-slate-100">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-lg font-bold text-slate-700">Trend Berat Papa</h2>
+                    <span class="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-full font-bold">Lelaki Dewasa</span>
+                </div>
+                <div class="chart-container">
+                    <canvas id="papaChart"></canvas>
+                </div>
+            </div>
+            <div class="glass-card p-6 rounded-3xl shadow-sm border border-slate-100">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-lg font-bold text-slate-700">Trend Berat Ayra</h2>
+                    <span class="text-xs bg-rose-100 text-rose-600 px-2 py-1 rounded-full font-bold">Kanak-kanak</span>
+                </div>
+                <div class="chart-container">
+                    <canvas id="ayraChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // TAMPAL URL /EXEC ANDA DI SINI
+        const APP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx03dCS6H1fdVWGCMw6Lemus09EnbcYVAbKkil3Xt9XZOiSLRkOuvI_iaO4NKKMyjrK/exec";
+        
+        let papaChart, ayraChart;
+
+        async function fetchHealthData() {
+            if (!APP_SCRIPT_URL || APP_SCRIPT_URL.includes("URL_APPS_SCRIPT")) {
+                console.warn("URL Apps Script belum dikonfigurasi.");
+                return;
+            }
+            try {
+                const response = await fetch(APP_SCRIPT_URL);
+                if (!response.ok) throw new Error("Gagal mengambil data.");
+                const data = await response.json();
+                
+                updateBMIUI(data);
+                renderCharts(data);
+            } catch (e) { 
+                console.error("Error:", e); 
+                document.getElementById('papa-bmi-status').innerText = "Ralat Sambungan";
+                document.getElementById('ayra-bmi-status').innerText = "Ralat Sambungan";
+            }
+        }
+
+        function updateBMIUI(data) {
+            const getVal = (obj, key) => {
+                const lowerKey = key.toLowerCase();
+                const actualKey = Object.keys(obj).find(k => k.toLowerCase() === lowerKey);
+                return actualKey ? obj[actualKey] : null;
+            };
+
+            // Update Papa
+            if (data.papa && data.papa.length > 0) {
+                const last = data.papa[data.papa.length - 1];
+                const bmi = parseFloat(getVal(last, "bmi"));
+                document.getElementById('papa-bmi-val').innerText = bmi.toFixed(1);
+                document.getElementById('papa-bmi-status').innerText = getBMICategory(bmi, false);
+                // Bar progress visual (max 40)
+                document.getElementById('papa-bmi-bar').style.width = Math.min((bmi / 40) * 100, 100) + "%";
+            }
+
+            // Update Ayra
+            if (data.ayra && data.ayra.length > 0) {
+                const last = data.ayra[data.ayra.length - 1];
+                const bmi = parseFloat(getVal(last, "bmi"));
+                document.getElementById('ayra-bmi-val').innerText = bmi.toFixed(1);
+                document.getElementById('ayra-bmi-status').innerText = getBMICategory(bmi, true);
+            }
+        }
+
+        function getBMICategory(bmi, isChild) {
+            const val = parseFloat(bmi);
+            if (isNaN(val)) return "Tiada data";
+            
+            // Logik BMI Ayra (Kanak-kanak) - Anggaran Kategori Persentil
+            if (isChild) {
+                if (val < 14) return "Kurang Berat (Susu lebih! 🍼)";
+                if (val < 18) return "Sihat & Aktif ✅";
+                if (val < 22) return "Berisi Comel 🍎";
+                return "Perlu Pantauan 🏃‍♀️";
+            }
+
+            // Logik Dewasa (Papa)
+            if (val < 18.5) return "Kurang Berat 🟡";
+            if (val < 25) return "Berat Ideal ✅";
+            if (val < 30) return "Berlebihan 🟠";
+            return "Obesiti 🔴";
+        }
+
+        function renderCharts(data) {
+            const getVal = (obj, key) => {
+                const lowerKey = key.toLowerCase();
+                const actualKey = Object.keys(obj).find(k => k.toLowerCase() === lowerKey);
+                return actualKey ? obj[actualKey] : null;
+            };
+
+            // Chart Papa
+            const papaCtx = document.getElementById('papaChart').getContext('2d');
+            const papaLabels = data.papa.map(d => new Date(getVal(d, "tarikh")).toLocaleDateString('ms-MY', {day:'numeric', month:'short'}));
+            const papaDataPoints = data.papa.map(d => getVal(d, "berat (kg)"));
+
+            if (papaChart) papaChart.destroy();
+            papaChart = new Chart(papaCtx, {
+                type: 'line',
+                data: {
+                    labels: papaLabels,
+                    datasets: [{
+                        label: 'Berat (kg)',
+                        data: papaDataPoints,
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#3b82f6'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { 
+                        y: { grid: { display: false }, beginAtZero: false },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+
+            // Chart Ayra
+            const ayraCtx = document.getElementById('ayraChart').getContext('2d');
+            const ayraLabels = data.ayra.map(d => new Date(getVal(d, "tarikh")).toLocaleDateString('ms-MY', {day:'numeric', month:'short'}));
+            const ayraDataPoints = data.ayra.map(d => getVal(d, "berat (kg)"));
+
+            if (ayraChart) ayraChart.destroy();
+            ayraChart = new Chart(ayraCtx, {
+                type: 'line',
+                data: {
+                    labels: ayraLabels,
+                    datasets: [{
+                        label: 'Berat (kg)',
+                        data: ayraDataPoints,
+                        borderColor: '#f43f5e',
+                        backgroundColor: 'rgba(244, 63, 94, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#f43f5e'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { 
+                        y: { grid: { display: false }, beginAtZero: false },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        async function saveRecord() {
+            const btn = document.getElementById('save-btn');
+            const status = document.getElementById('status');
+            const target = document.getElementById('target').value;
+            const weight = document.getElementById('weight').value;
+            const height = document.getElementById('height').value;
+
+            if (!weight || !height) return;
+
+            btn.disabled = true;
+            status.innerText = "⏳ Menyimpan...";
+            status.className = "text-center text-sm font-medium h-4 text-blue-500";
+
+            try {
+                const formData = new URLSearchParams();
+                formData.append('target', target);
+                formData.append('weight', weight);
+                formData.append('height', height);
+
+                await fetch(APP_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors', 
+                    body: formData
+                });
+
+                status.innerText = "✅ Berjaya!";
+                status.className = "text-center text-sm font-medium h-4 text-green-500";
+                document.getElementById('weight').value = '';
+                
+                setTimeout(() => {
+                    btn.disabled = false;
+                    status.innerText = "";
+                    fetchHealthData();
+                }, 1500);
+            } catch (e) {
+                status.innerText = "❌ Gagal!";
+                btn.disabled = false;
+            }
+        }
+
+        window.onload = fetchHealthData;
+    </script>
+</body>
+</html>
