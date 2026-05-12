@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Penjejak Penyelenggaraan Rumah | Ir. M Hafiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f8fafc;
+        }
+
+        .status-card { transition: all 0.3s ease; border-left-width: 6px; }
+        .status-card:hover { transform: translateY(-5px); }
+        .overdue { border-left-color: #ef4444; }
+        .upcoming { border-left-color: #f59e0b; }
+        .healthy { border-left-color: #10b981; }
+
+        .sync-active { animation: spin 1s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen">
+
+    <div class="max-w-4xl mx-auto px-4 py-8">
+        <!-- Header -->
+        <header class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-2xl font-bold text-slate-800">Home Maintenance Tracker</h1>
+                <div class="flex items-center gap-2 mt-1">
+                    <span id="cloud-status" class="w-2 h-2 rounded-full bg-slate-300"></span>
+                    <p id="status-text" class="text-slate-500 text-xs font-medium uppercase tracking-wider">Mod Offline</p>
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="syncData()" class="p-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition-all" title="Sync dengan Google Sheets">
+                    <i id="sync-icon" class="fa-solid fa-cloud-arrow-up"></i>
+                </button>
+                <button onclick="openModalForAdd()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 shadow-lg shadow-blue-200 transition-all">
+                    <i class="fa-solid fa-plus"></i> Tambah Item
+                </button>
+            </div>
+        </header>
+
+        <!-- Stats Overview -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                <p class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Perlu Perhatian</p>
+                <div class="flex items-center justify-between">
+                    <span id="overdueCount" class="text-3xl font-bold text-red-500">0</span>
+                    <i class="fa-solid fa-circle-exclamation text-red-100 text-3xl"></i>
+                </div>
+            </div>
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                <p class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Akan Datang (30 Hari)</p>
+                <div class="flex items-center justify-between">
+                    <span id="upcomingCount" class="text-3xl font-bold text-amber-500">0</span>
+                    <i class="fa-solid fa-clock text-amber-100 text-3xl"></i>
+                </div>
+            </div>
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                <p class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Status Selamat</p>
+                <div class="flex items-center justify-between">
+                    <span id="healthyCount" class="text-3xl font-bold text-emerald-500">0</span>
+                    <i class="fa-solid fa-check-circle text-emerald-100 text-3xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Maintenance List -->
+        <div class="space-y-4">
+            <div class="flex justify-between items-center px-1">
+                <h2 class="text-lg font-semibold text-slate-700">Senarai Penyelenggaraan</h2>
+                <button onclick="clearAllData()" class="text-[10px] text-red-400 font-bold uppercase hover:text-red-600 transition-colors">Padam Semua</button>
+            </div>
+            <div id="maintenanceList" class="grid gap-4">
+                <!-- Items injected here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Setup Info -->
+    <div id="setup-nudge" class="max-w-4xl mx-auto px-4 mb-8 hidden">
+        <div class="bg-blue-50 border border-blue-100 rounded-2xl p-4 flex gap-4 items-start">
+            <i class="fa-solid fa-circle-info text-blue-500 mt-1"></i>
+            <div class="text-sm text-blue-800">
+                <p class="font-bold">Nak simpan ke Google Sheets?</p>
+                <p class="mt-1">Masukkan URL Google Apps Script anda di dalam kod (variabel SHEET_URL) untuk membolehkan Cloud Sync.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Form (Add/Edit) -->
+    <div id="modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden">
+            <div class="p-6 border-b border-slate-100 flex justify-between items-center">
+                <h3 id="modalTitle" class="font-bold text-xl text-slate-800">Tambah Peralatan Baru</h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <form id="maintenanceForm" class="p-6 space-y-4">
+                <input type="hidden" id="editId">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Nama Peralatan / Servis</label>
+                    <input type="text" id="itemName" required placeholder="Contoh: Aircond Ruang Tamu" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Kategori</label>
+                    <select id="category" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none">
+                        <option value="Aircond">Aircond</option>
+                        <option value="Kipas">Kipas</option>
+                        <option value="Water Filter">Water Filter</option>
+                        <option value="Pest Control">Pest Control</option>
+                        <option value="Waterproofing">Waterproofing</option>
+                        <option value="Lain-lain">Lain-lain</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Servis Terakhir</label>
+                        <input type="date" id="lastService" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Selang (Bulan)</label>
+                        <input type="number" id="interval" required min="1" placeholder="cth: 3" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                </div>
+                <button type="submit" id="submitBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-lg transition-all mt-4">Simpan Rekod</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // 1. MASUKKAN URL APPS SCRIPT ANDA DI SINI
+        const SHEET_URL = ""; 
+
+        let maintenanceItems = JSON.parse(localStorage.getItem('home_maintenance_data')) || [];
+
+        function openModalForAdd() {
+            document.getElementById('modalTitle').innerText = "Tambah Peralatan Baru";
+            document.getElementById('submitBtn').innerText = "Simpan Rekod";
+            document.getElementById('editId').value = "";
+            document.getElementById('maintenanceForm').reset();
+            document.getElementById('lastService').valueAsDate = new Date();
+            document.getElementById('modal').classList.remove('hidden');
+        }
+
+        function openModalForEdit(id) {
+            const item = maintenanceItems.find(i => i.id === id);
+            if (!item) return;
+
+            document.getElementById('modalTitle').innerText = "Edit Peralatan";
+            document.getElementById('submitBtn').innerText = "Kemas Kini";
+            document.getElementById('editId').value = item.id;
+            document.getElementById('itemName').value = item.name;
+            document.getElementById('category').value = item.category;
+            document.getElementById('lastService').value = item.lastService;
+            document.getElementById('interval').value = item.interval;
+            
+            document.getElementById('modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.add('hidden');
+        }
+
+        async function syncData() {
+            if (!SHEET_URL) {
+                document.getElementById('setup-nudge').classList.remove('hidden');
+                return;
+            }
+
+            const icon = document.getElementById('sync-icon');
+            const statusDot = document.getElementById('cloud-status');
+            const statusText = document.getElementById('status-text');
+
+            icon.classList.add('sync-active');
+            statusText.innerText = "Menyambung...";
+
+            try {
+                const response = await fetch(SHEET_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    cache: 'no-cache',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(maintenanceItems)
+                });
+
+                statusDot.classList.replace('bg-slate-300', 'bg-emerald-500');
+                statusDot.classList.replace('bg-red-500', 'bg-emerald-500');
+                statusText.innerText = "Cloud Synced";
+                setTimeout(() => icon.classList.remove('sync-active'), 1000);
+            } catch (error) {
+                statusDot.classList.replace('bg-slate-300', 'bg-red-500');
+                statusDot.classList.replace('bg-emerald-500', 'bg-red-500');
+                statusText.innerText = "Sync Gagal";
+                icon.classList.remove('sync-active');
+            }
+        }
+
+        document.getElementById('maintenanceForm').onsubmit = function(e) {
+            e.preventDefault();
+            const editId = document.getElementById('editId').value;
+            
+            const itemData = {
+                id: editId ? parseInt(editId) : Date.now(),
+                name: document.getElementById('itemName').value,
+                category: document.getElementById('category').value,
+                lastService: document.getElementById('lastService').value,
+                interval: parseInt(document.getElementById('interval').value)
+            };
+
+            if (editId) {
+                const index = maintenanceItems.findIndex(i => i.id === parseInt(editId));
+                maintenanceItems[index] = itemData;
+            } else {
+                maintenanceItems.push(itemData);
+            }
+
+            saveAndRefresh();
+            closeModal();
+            if(SHEET_URL) syncData();
+        };
+
+        function calculateNextService(lastDateStr, intervalMonths) {
+            const date = new Date(lastDateStr);
+            date.setMonth(date.getMonth() + intervalMonths);
+            return date;
+        }
+
+        function deleteItem(id) {
+            if(confirm('Padam item ini?')) {
+                maintenanceItems = maintenanceItems.filter(item => item.id !== id);
+                saveAndRefresh();
+                if(SHEET_URL) syncData();
+            }
+        }
+
+        function markDone(id) {
+            const today = new Date().toISOString().split('T')[0];
+            const index = maintenanceItems.findIndex(item => item.id === id);
+            if(index !== -1) {
+                maintenanceItems[index].lastService = today;
+                saveAndRefresh();
+                if(SHEET_URL) syncData();
+            }
+        }
+
+        function clearAllData() {
+            if(confirm('Padam SEMUA data?')) {
+                maintenanceItems = [];
+                saveAndRefresh();
+            }
+        }
+
+        function saveAndRefresh() {
+            localStorage.setItem('home_maintenance_data', JSON.stringify(maintenanceItems));
+            renderList();
+        }
+
+        function renderList() {
+            const listContainer = document.getElementById('maintenanceList');
+            const now = new Date();
+            let counts = { overdue: 0, upcoming: 0, healthy: 0 };
+
+            if (maintenanceItems.length === 0) {
+                listContainer.innerHTML = `<div class="bg-white p-12 rounded-2xl border-2 border-dashed border-slate-200 text-center"><p class="text-slate-400 text-sm italic text-center">Tiada rekod. Klik 'Tambah Item' untuk mula.</p></div>`;
+                updateDashboard(counts);
+                return;
+            }
+
+            const sortedItems = [...maintenanceItems].sort((a, b) => 
+                calculateNextService(a.lastService, a.interval) - calculateNextService(b.lastService, b.interval)
+            );
+
+            listContainer.innerHTML = sortedItems.map(item => {
+                const nextDate = calculateNextService(item.lastService, item.interval);
+                const diffDays = Math.ceil((nextDate - now) / (1000 * 60 * 60 * 24));
+                
+                let statusClass = 'healthy';
+                let statusLabel = `Lagi ${diffDays} hari`;
+                
+                if (diffDays < 0) {
+                    statusClass = 'overdue';
+                    statusLabel = `LEWAT ${Math.abs(diffDays)} HARI`;
+                    counts.overdue++;
+                } else if (diffDays <= 30) {
+                    statusClass = 'upcoming';
+                    statusLabel = `Hampir Masa (${diffDays} hari)`;
+                    counts.upcoming++;
+                } else {
+                    counts.healthy++;
+                }
+
+                const iconMap = { 'Aircond': 'fa-snowflake', 'Kipas': 'fa-fan', 'Water Filter': 'fa-faucet-detergent', 'Pest Control': 'fa-bug-slash', 'Waterproofing': 'fa-house-flood-water' };
+                const icon = iconMap[item.category] || 'fa-box';
+
+                return `
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4 status-card ${statusClass}">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400">
+                                <i class="fa-solid ${icon} text-xl"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-800">${item.name}</h4>
+                                <div class="flex gap-2 mt-1">
+                                    <span class="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-bold uppercase">${item.category}</span>
+                                    <span class="text-[10px] text-slate-400 italic">Terakhir: ${new Date(item.lastService).toLocaleDateString('ms-MY')}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between md:justify-end gap-4 border-t md:border-t-0 pt-3 md:pt-0">
+                            <div class="text-right mr-2">
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Jadual Seterusnya</p>
+                                <p class="text-sm font-bold ${statusClass === 'overdue' ? 'text-red-500' : 'text-slate-700'}">${nextDate.toLocaleDateString('ms-MY', {day:'numeric', month:'short', year:'numeric'})}</p>
+                                <p class="text-[10px] font-bold ${statusClass === 'overdue' ? 'text-red-400' : statusClass === 'upcoming' ? 'text-amber-500' : 'text-emerald-500'}">${statusLabel}</p>
+                            </div>
+                            <div class="flex gap-1.5">
+                                <button onclick="markDone(${item.id})" title="Selesai Servis" class="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white transition-all"><i class="fa-solid fa-check text-sm"></i></button>
+                                <button onclick="openModalForEdit(${item.id})" title="Edit" class="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all"><i class="fa-solid fa-pen-to-square text-sm"></i></button>
+                                <button onclick="deleteItem(${item.id})" title="Padam" class="w-9 h-9 rounded-lg bg-slate-50 text-slate-400 hover:text-red-500 transition-all"><i class="fa-solid fa-trash-can text-sm"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            updateDashboard(counts);
+        }
+
+        function updateDashboard(counts) {
+            document.getElementById('overdueCount').textContent = counts.overdue;
+            document.getElementById('upcomingCount').textContent = counts.upcoming;
+            document.getElementById('healthyCount').textContent = counts.healthy;
+        }
+
+        if(!SHEET_URL) document.getElementById('setup-nudge').classList.remove('hidden');
+        renderList();
+    </script>
+</body>
+</html>
